@@ -8,6 +8,8 @@ import seaborn as sns
 from sklearn.cluster import KMeans
 import scipy.cluster.hierarchy as shc
 
+from kneed import KneeLocator
+
 
 def save_clusters(grouped_by_race, kmeans_pca, races):
 	# Add cluster number to the original data set for future use
@@ -72,12 +74,21 @@ def find_the_number_of_clusters(principal_components, limit):
 		kmeans_pca.fit(principal_components)
 		wcss.append(kmeans_pca.inertia_)
 
+	# Plot the figure
 	plt.figure(figsize=(16, 10))
 	plt.plot(range(1, limit + 1), wcss, marker='o', linestyle='--')
 	plt.xlabel("Number of clusters")
 	plt.ylabel("WCSS")
 	plt.title("K-Means PCA2")
+
+	order = np.linspace(1, limit, limit)
+	# find the elbow
+	# https://github.com/arvkevi/kneed/blob/master/notebooks/decreasing_function_walkthrough.ipynb
+	kn = KneeLocator(order, wcss, curve='convex', direction='decreasing')
+	plt.vlines(kn.elbow, plt.ylim()[0], plt.ylim()[1], linestyles='dashed')
 	plt.show()
+	print("Number of clusters: {0}".format(kn.elbow))
+	return int(kn.elbow)
 
 
 def plot_dendrogram(races, x):
@@ -97,14 +108,7 @@ def cluster_with_kmeans(number_of_clusters, principal_components, principal_df, 
 	finalDf['Segment'] = kmeans_pca.labels_
 	finalDf['Race'] = races
 	finalDf.rename({0: 'PC1', 1: 'PC2', 2: 'PC3'}, axis=1, inplace=True)
-	finalDf = finalDf.groupby(["Race"]).first().reset_index()
-
-	# Extract clusters
-	# cluster1 = finalDf.loc[finalDf.Segment == 1]
-	# cluster2 = finalDf.loc[finalDf.Segment == 2]
-	# cluster0 = finalDf.loc[finalDf.Segment == 0]
-	# cluster3 = finalDf.loc[finalDf.Segment == 3]
-	print(finalDf['Segment'].values)
+	grouped = finalDf.groupby(["Race"]).first().reset_index()
 
 	# plot the thing
 	sns.set()
@@ -113,17 +117,18 @@ def cluster_with_kmeans(number_of_clusters, principal_components, principal_df, 
 	sns.scatterplot(
 		x="PC1", y="PC2",
 		hue="Segment",
-		data=finalDf,
-		style=finalDf["Segment"],
+		data=grouped,
+		style=grouped["Segment"],
 		legend=False,
 		alpha=0.7
 	)
 
-	for line in range(0, finalDf.shape[0]):
+	# add labels next to the data point
+	for line in range(0, grouped.shape[0]):
 		plt.text(
-			finalDf.PC1[line] + 0.05,
-			finalDf.PC2[line] - 0.1,
-			finalDf.Race[line],
+			grouped.PC1[line] + 0.05,
+			grouped.PC2[line] - 0.1,
+			grouped.Race[line],
 			horizontalalignment='left',
 			size='small',
 			color='black'
@@ -151,13 +156,14 @@ def main():
 	# fit principal components
 	# store them into separate data frame
 	# add labels for race to the data frame
-	pca = PCA(n_components=36)
+	number_of_components = 36
+	pca = PCA(n_components=number_of_components)
 	principal_components = pca.fit_transform(full_df)
 	principal_Df = pd.DataFrame(data=principal_components)
 	principal_Df['y'] = races
 
 	# number of clusters for k-means clustering algorithm
-	number_of_clusters = 4
+
 
 	# to plot dendrogram, data set must be small
 	# otherwise it runs out of memory
@@ -169,11 +175,15 @@ def main():
 	find_number_of_components(pca)
 
 	# find number of clusters
-	find_the_number_of_clusters(principal_components, 10)
+	number_of_clusters = find_the_number_of_clusters(principal_components, 20)
 
 	# Cluster with k-means
 	# returns final_df which is a data frame with cluster numbers and is grouped by race
 	final_df = cluster_with_kmeans(number_of_clusters, principal_components, principal_Df, races)
+
+	raw_data['Segment'] = final_df.Segment
+	print(raw_data.Segment.describe())
+	raw_data.to_csv("PCA2_With_Cluster_Number_Raw_Data.csv")
 
 	# plot the final df in 3D scatter graph
 	plot_3d_scatter(final_df)
