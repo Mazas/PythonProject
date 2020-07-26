@@ -108,7 +108,7 @@ def cluster_with_kmeans(number_of_clusters, principal_components, principal_df, 
 	finalDf['Segment'] = kmeans_pca.labels_
 	finalDf['Race'] = races
 	finalDf.rename({0: 'PC1', 1: 'PC2', 2: 'PC3'}, axis=1, inplace=True)
-	grouped = finalDf.groupby(["Race"]).first().reset_index()
+	grouped = finalDf.groupby(["Race"]).median().reset_index()
 
 	# plot the thing
 	sns.set()
@@ -144,7 +144,7 @@ def main():
 
 	# data frame that is grouped by race
 	# used for dendrogram
-	grouped_by_race = raw_data.groupby(["Race"]).first().reset_index()
+	grouped_by_race = raw_data.groupby(["Race"]).median().reset_index()
 	distinct_races = grouped_by_race.loc[:, ['Race']].values
 
 	# extract races from the data frame into separate dictionary
@@ -156,7 +156,7 @@ def main():
 	# fit principal components
 	# store them into separate data frame
 	# add labels for race to the data frame
-	number_of_components = 36
+	number_of_components = 37
 	pca = PCA(n_components=number_of_components)
 	principal_components = pca.fit_transform(full_df)
 	principal_Df = pd.DataFrame(data=principal_components)
@@ -186,7 +186,7 @@ def main():
 	raw_data.to_csv("PCA2_With_Cluster_Number_Raw_Data.csv")
 
 	# plot the final df in 3D scatter graph
-	plot_3d_scatter(final_df)
+	plot_3d_scatter(final_df.groupby(["Race"]).median().reset_index())
 
 
 if __name__ == '__main__':
