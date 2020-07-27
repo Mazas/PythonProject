@@ -7,6 +7,8 @@ from sklearn.preprocessing import StandardScaler
 import seaborn as sns
 from sklearn.cluster import KMeans
 import scipy.cluster.hierarchy as shc
+from scipy.spatial.distance import cdist
+import ClusteringAlgorithms as clustering
 
 from kneed import KneeLocator
 
@@ -37,11 +39,17 @@ def plot_3d_scatter(final_df):
 	legend = ax.legend(*fig.legend_elements(), loc="lower center", title="X Values", borderaxespad=-10, ncol=4)
 	ax.add_artist(legend)
 
-	xAxisLine = ((min(final_df['PC1']), max(final_df['PC1'])), (0, 0), (0, 0))
+	xAxisLine = ((min(final_df['PC1']), max(final_df['PC1'])),
+	             ((min(final_df['PC2']) + max(final_df['PC2'])) / 2, (min(final_df['PC2']) + max(final_df['PC2'])) / 2),
+	             ((min(final_df['PC3']) + max(final_df['PC3'])) / 2, (min(final_df['PC3']) + max(final_df['PC3'])) / 2))
 	ax.plot(xAxisLine[0], xAxisLine[1], xAxisLine[2], 'r')
-	yAxisLine = ((0, 0), (min(final_df['PC2']), max(final_df['PC2'])), (0, 0))
+	yAxisLine = (((min(final_df['PC1']) + max(final_df['PC1'])) / 2, (min(final_df['PC1']) + max(final_df['PC1'])) / 2),
+	             (min(final_df['PC2']), max(final_df['PC2'])),
+	             ((min(final_df['PC3']) + max(final_df['PC3'])) / 2, (min(final_df['PC3']) + max(final_df['PC3'])) / 2))
 	ax.plot(yAxisLine[0], yAxisLine[1], yAxisLine[2], 'r')
-	zAxisLine = ((0, 0), (0, 0), (min(final_df['PC3']), max(final_df['PC3'])))
+	zAxisLine = (((min(final_df['PC1']) + max(final_df['PC1'])) / 2, (min(final_df['PC1']) + max(final_df['PC1'])) / 2),
+	             ((min(final_df['PC2']) + max(final_df['PC2'])) / 2, (min(final_df['PC2']) + max(final_df['PC2'])) / 2),
+	             (min(final_df['PC3']), max(final_df['PC3'])))
 	ax.plot(zAxisLine[0], zAxisLine[1], zAxisLine[2], 'r')
 
 	plt.show()
@@ -49,8 +57,6 @@ def plot_3d_scatter(final_df):
 
 def find_number_of_components(pca):
 	# find number of components
-	# 36 components account for 98.7 variance
-	# meaning that last 11 components are close to useless
 	per_var = np.round(pca.explained_variance_ratio_ * 100, decimals=1)
 	ratio_sum = 0
 	for order in range(0, len(pca.explained_variance_ratio_)):
@@ -72,7 +78,8 @@ def find_the_number_of_clusters(principal_components, limit):
 		print("Fitting components {0}/{1}".format(i, limit))
 		kmeans_pca = KMeans(n_clusters=i, init='k-means++')
 		kmeans_pca.fit(principal_components)
-		wcss.append(kmeans_pca.inertia_)
+		wcss.append(sum(np.min(cdist(principal_components, kmeans_pca.cluster_centers_, 'euclidean'),
+		                       axis=1)) / principal_components.shape[0])
 
 	# Plot the figure
 	plt.figure(figsize=(16, 10))
@@ -99,45 +106,6 @@ def plot_dendrogram(races, x):
 	plt.show()
 
 
-def cluster_with_kmeans(number_of_clusters, principal_components, principal_df, races):
-	# do some clustering
-	kmeans_pca = KMeans(n_clusters=number_of_clusters, init='k-means++', random_state=42)
-	kmeans_pca.fit(principal_components)
-
-	finalDf = pd.concat([principal_df], axis=1)
-	finalDf['Segment'] = kmeans_pca.labels_
-	finalDf['Race'] = races
-	finalDf.rename({0: 'PC1', 1: 'PC2', 2: 'PC3'}, axis=1, inplace=True)
-	grouped = finalDf.groupby(["Race"]).median().reset_index()
-
-	# plot the thing
-	sns.set()
-	plt.figure(figsize=(20, 20))
-	plt.title("K-Means PCA")
-	sns.scatterplot(
-		x="PC1", y="PC2",
-		hue="Segment",
-		data=grouped,
-		style=grouped["Segment"],
-		legend=False,
-		alpha=0.7
-	)
-
-	# add labels next to the data point
-	for line in range(0, grouped.shape[0]):
-		plt.text(
-			grouped.PC1[line] + 0.05,
-			grouped.PC2[line] - 0.1,
-			grouped.Race[line],
-			horizontalalignment='left',
-			size='small',
-			color='black'
-		)
-
-	plt.show()
-	return finalDf
-
-
 def main():
 	# load data into a data frame
 	raw_data = pd.read_csv("data_file.csv")
@@ -149,44 +117,65 @@ def main():
 
 	# extract races from the data frame into separate dictionary
 	# then scale/ normalize remaining data
-	races = raw_data.loc[:, ['Race']].values
-	full_df = raw_data.drop("Race", axis=1)
-	full_df = StandardScaler().fit_transform(full_df)
+	# races = raw_data.loc[:, ['Race']].values
+	# full_df = raw_data.drop("Race", axis=1)
+	# full_df = StandardScaler().fit_transform(full_df)
+
+	grouped_by_race = grouped_by_race.drop("Race", axis=1)
+	grouped_by_race = StandardScaler().fit_transform(grouped_by_race)
 
 	# fit principal components
 	# store them into separate data frame
 	# add labels for race to the data frame
-	number_of_components = 37
+	number_of_components = 18
 	pca = PCA(n_components=number_of_components)
-	principal_components = pca.fit_transform(full_df)
+	principal_components = pca.fit_transform(grouped_by_race)
 	principal_Df = pd.DataFrame(data=principal_components)
-	principal_Df['y'] = races
-
-	# number of clusters for k-means clustering algorithm
-
+	principal_Df['y'] = distinct_races
 
 	# to plot dendrogram, data set must be small
 	# otherwise it runs out of memory
 	# this makes dendrogram quite inconsistent and frankly useless
 	# can be somewhat fixed by using pca grouped pca
-	plot_dendrogram(distinct_races, x=grouped_by_race.drop("Race", axis=1))
+	plot_dendrogram(distinct_races, x=grouped_by_race)
 
 	# find number of components
 	find_number_of_components(pca)
 
 	# find number of clusters
-	number_of_clusters = find_the_number_of_clusters(principal_components, 20)
+	number_of_clusters = find_the_number_of_clusters(principal_components, 10)
 
 	# Cluster with k-means
 	# returns final_df which is a data frame with cluster numbers and is grouped by race
-	final_df = cluster_with_kmeans(number_of_clusters, principal_components, principal_Df, races)
+	final_df = clustering.cluster_with_kmeans(6, principal_components, principal_Df)
 
-	raw_data['Segment'] = final_df.Segment
-	print(raw_data.Segment.describe())
-	raw_data.to_csv("PCA2_With_Cluster_Number_Raw_Data.csv")
+	# cluster with affinity propagation
+	clustering.affinity_propagation(principal_components, principal_Df)
 
+	# Balanced Iterative Reducing and Clustering using Hierarchies
+	# BIRCH clustering
+	clustering.birch_clustering(principal_components, principal_Df, 6)
+
+	# DBSCAN clustering
+	clustering.dbscan_clustering(principal_components, principal_Df)
+
+	# Mean Shift clustering
+	clustering.mean_shift_clustering(principal_components, principal_Df)
+
+	# OPTICS clustering, modified DBSCAN
+	clustering.optics_clustering(principal_components, principal_Df)
+
+	# spectral clustering
+	clustering.spectral_clustering(principal_components, principal_Df)
+
+	# gaussian clustering
+	clustering.gaussian_clustering(principal_components, principal_Df)
+
+	# raw_data['Segment'] = final_df.Segment
+	# raw_data.groupby(["Race"]).agg(pd.Series.mode).reset_index().to_csv("PCA2_With_Cluster_Number_Grouped.csv")
+	#
 	# plot the final df in 3D scatter graph
-	plot_3d_scatter(final_df.groupby(["Race"]).median().reset_index())
+	# plot_3d_scatter(final_df)
 
 
 if __name__ == '__main__':
