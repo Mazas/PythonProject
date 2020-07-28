@@ -8,17 +8,9 @@ import seaborn as sns
 from sklearn.cluster import KMeans
 import scipy.cluster.hierarchy as shc
 from scipy.spatial.distance import cdist
-import ClusteringAlgorithms as clustering
+import Plotting.ClusteringAlgorithms as clustering
 
 from kneed import KneeLocator
-
-
-def save_clusters(grouped_by_race, kmeans_pca, races):
-	# Add cluster number to the original data set for future use
-	grouped_by_race['Segment'] = kmeans_pca.labels_
-	grouped_by_race['Race'] = races
-	print(grouped_by_race.describe())
-	grouped_by_race.to_csv("PCA2_Grouped_By_Race_With_Cluster_Number.csv")
 
 
 def plot_3d_scatter(final_df):
@@ -137,45 +129,45 @@ def main():
 	# otherwise it runs out of memory
 	# this makes dendrogram quite inconsistent and frankly useless
 	# can be somewhat fixed by using pca grouped pca
-	plot_dendrogram(distinct_races, x=grouped_by_race)
+	# plot_dendrogram(distinct_races, x=grouped_by_race)
 
 	# find number of components
-	find_number_of_components(pca)
+	# find_number_of_components(pca)
 
 	# find number of clusters
 	number_of_clusters = find_the_number_of_clusters(principal_components, 10)
 
 	# Cluster with k-means
 	# returns final_df which is a data frame with cluster numbers and is grouped by race
-	final_df = clustering.cluster_with_kmeans(6, principal_components, principal_Df)
+	final_df = clustering.cluster_with_kmeans(number_of_clusters, principal_components, principal_Df)
 
 	# cluster with affinity propagation
-	clustering.affinity_propagation(principal_components, principal_Df)
+	# clustering.affinity_propagation(principal_components, principal_Df)
 
 	# Balanced Iterative Reducing and Clustering using Hierarchies
 	# BIRCH clustering
-	clustering.birch_clustering(principal_components, principal_Df, 6)
+	# clustering.birch_clustering(principal_components, principal_Df, number_of_clusters)
 
 	# DBSCAN clustering
-	clustering.dbscan_clustering(principal_components, principal_Df)
+	# clustering.dbscan_clustering(principal_components, principal_Df)
 
 	# Mean Shift clustering
-	clustering.mean_shift_clustering(principal_components, principal_Df)
+	# clustering.mean_shift_clustering(principal_components, principal_Df)
 
 	# OPTICS clustering, modified DBSCAN
-	clustering.optics_clustering(principal_components, principal_Df)
+	# clustering.optics_clustering(principal_components, principal_Df)
 
 	# spectral clustering
-	clustering.spectral_clustering(principal_components, principal_Df)
+	# clustering.spectral_clustering(principal_components, principal_Df)
 
 	# gaussian clustering
-	clustering.gaussian_clustering(principal_components, principal_Df)
+	# clustering.gaussian_clustering(principal_components, principal_Df)
 
-	# raw_data['Segment'] = final_df.Segment
-	# raw_data.groupby(["Race"]).agg(pd.Series.mode).reset_index().to_csv("PCA2_With_Cluster_Number_Grouped.csv")
-	#
 	# plot the final df in 3D scatter graph
-	# plot_3d_scatter(final_df)
+	plot_3d_scatter(final_df)
+
+	# save to a file
+	final_df.to_csv("Grouped_by_race_with_cluster_labels.csv")
 
 
 if __name__ == '__main__':

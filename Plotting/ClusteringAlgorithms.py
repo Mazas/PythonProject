@@ -9,7 +9,7 @@ from sklearn.mixture import GaussianMixture
 
 def cluster_with_kmeans(number_of_clusters, principal_components, principal_df):
 	# do some clustering
-	kmeans_pca = KMeans(n_clusters=number_of_clusters, init='k-means++', random_state=42)
+	kmeans_pca = KMeans(n_clusters=number_of_clusters, init='k-means++', random_state=80)
 	kmeans_pca.fit(principal_components)
 
 	final_df = pd.concat([principal_df], axis=1)
