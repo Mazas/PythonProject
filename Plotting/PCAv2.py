@@ -113,6 +113,8 @@ def main():
 	# full_df = raw_data.drop("Race", axis=1)
 	# full_df = StandardScaler().fit_transform(full_df)
 
+	original_groups = grouped_by_race.copy()
+
 	grouped_by_race = grouped_by_race.drop("Race", axis=1)
 	grouped_by_race = StandardScaler().fit_transform(grouped_by_race)
 
@@ -166,8 +168,11 @@ def main():
 	# plot the final df in 3D scatter graph
 	plot_3d_scatter(final_df)
 
+	original_groups['Segment'] = final_df['Segment']
+	print(original_groups)
+
 	# save to a file
-	final_df.to_csv("Grouped_by_race_with_cluster_labels.csv")
+	original_groups.to_csv("Grouped_by_race_with_cluster_labels.csv")
 
 
 if __name__ == '__main__':
