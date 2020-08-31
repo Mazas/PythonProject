@@ -9,7 +9,6 @@ from sklearn.cluster import KMeans
 import scipy.cluster.hierarchy as shc
 from scipy.spatial.distance import cdist
 import Plotting.ClusteringAlgorithms as clustering
-
 from kneed import KneeLocator
 
 
@@ -98,9 +97,28 @@ def plot_dendrogram(races, x):
 	plt.show()
 
 
+def drop_columns(data):
+	# ['Race', 'Passes', 'MetersRun', 'Touchdowns', 'Score', 'Blocks',
+	# 'Breaks', 'Knockouts', 'Stuns', 'Casualties', 'Kills', 'Catches',
+	# 'CatchesFailed', 'Interceptions', 'Dodges', 'DodgesFailed', 'GFIs',
+	# 'Pickups', 'PickupsFailed', 'BallPossession', 'Completions', 'Sacks',
+	# 'Turnovers', 'XP']
+	# has the most effect on the clustering.
+	# note that K means clusters this subset the same way as full feature set
+	# however hierarchical clustering still finds only 2 clusters
+
+	columns = ['Value', 'IsHome', 'BlocksFailed', 'BlocksNeutral', 'BlocksGood', 'BlockRisk', 'BlockLuck',
+	           'MoveRisk', 'MoveLuck', 'PassRisk', 'PassLuck', 'Risk', 'Luck', 'GFIsFailed', 'PassesFailed']
+	return data.drop(columns, axis=1)
+
+
 def main():
 	# load data into a data frame
 	raw_data = pd.read_csv("data_file.csv")
+	raw_data = drop_columns(raw_data)
+
+	print(raw_data.columns)
+	print(len(raw_data.columns))
 
 	# data frame that is grouped by race
 	# used for dendrogram
@@ -112,8 +130,14 @@ def main():
 	# races = raw_data.loc[:, ['Race']].values
 	# full_df = raw_data.drop("Race", axis=1)
 	# full_df = StandardScaler().fit_transform(full_df)
+	#
+	# number_of_components = 29
+	# pca = PCA(n_components=number_of_components)
+	# principal_components = pca.fit_transform(full_df)
+	# principal_Df = pd.DataFrame(data=principal_components)
+	# principal_Df['y'] = races
 
-	original_groups = grouped_by_race.copy()
+	# original_groups = grouped_by_race.copy()
 
 	grouped_by_race = grouped_by_race.drop("Race", axis=1)
 	grouped_by_race = StandardScaler().fit_transform(grouped_by_race)
@@ -121,7 +145,7 @@ def main():
 	# fit principal components
 	# store them into separate data frame
 	# add labels for race to the data frame
-	number_of_components = 18
+	number_of_components = 15
 	pca = PCA(n_components=number_of_components)
 	principal_components = pca.fit_transform(grouped_by_race)
 	principal_Df = pd.DataFrame(data=principal_components)
@@ -131,10 +155,10 @@ def main():
 	# otherwise it runs out of memory
 	# this makes dendrogram quite inconsistent and frankly useless
 	# can be somewhat fixed by using pca grouped pca
-	# plot_dendrogram(distinct_races, x=grouped_by_race)
+	plot_dendrogram(distinct_races, x=grouped_by_race)
 
 	# find number of components
-	# find_number_of_components(pca)
+	find_number_of_components(pca)
 
 	# find number of clusters
 	number_of_clusters = find_the_number_of_clusters(principal_components, 10)
@@ -166,13 +190,13 @@ def main():
 	# clustering.gaussian_clustering(principal_components, principal_Df)
 
 	# plot the final df in 3D scatter graph
-	plot_3d_scatter(final_df)
+	# plot_3d_scatter(final_df)
 
-	original_groups['Segment'] = final_df['Segment']
-	print(original_groups)
+	# original_groups['Segment'] = final_df['Segment']
+	# print(original_groups)
 
 	# save to a file
-	original_groups.to_csv("Grouped_by_race_with_cluster_labels.csv")
+	# original_groups.to_csv("Grouped_by_race_with_cluster_labels.csv")
 
 
 if __name__ == '__main__':

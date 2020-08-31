@@ -1,7 +1,9 @@
 from numpy import unique
 from numpy import where
 from sklearn.cluster import AffinityPropagation, KMeans, Birch, DBSCAN, MeanShift, OPTICS, SpectralClustering
+from sklearn.metrics import silhouette_score, silhouette_samples
 import matplotlib.pyplot as plt
+import numpy as np
 import seaborn as sns
 import pandas as pd
 from sklearn.mixture import GaussianMixture
@@ -10,7 +12,7 @@ from sklearn.mixture import GaussianMixture
 def cluster_with_kmeans(number_of_clusters, principal_components, principal_df):
 	# do some clustering
 	kmeans_pca = KMeans(n_clusters=number_of_clusters, init='k-means++', random_state=80)
-	kmeans_pca.fit(principal_components)
+	prediction = kmeans_pca.fit_predict(principal_components)
 
 	final_df = pd.concat([principal_df], axis=1)
 	final_df['Segment'] = kmeans_pca.labels_
@@ -29,7 +31,57 @@ def cluster_with_kmeans(number_of_clusters, principal_components, principal_df):
 		alpha=0.7
 	)
 	add_race_labels(final_df)
+
+	calc_silhouette(data=principal_components, prediction=prediction, n_clusters=number_of_clusters)
+
 	return final_df
+
+
+def calc_silhouette(data, prediction, n_clusters):
+	ax = plt.gca()
+	# Compute the silhouette scores for each sample
+	silhouette_avg = silhouette_score(data, prediction)
+	sample_silhouette_values = silhouette_samples(data, prediction)
+	print(silhouette_avg)
+
+	y_lower = padding = 2
+	y_upper = 0
+	for i in range(n_clusters):
+		# Aggregate the silhouette scores for samples belonging to
+		ith_cluster_silhouette_values = sample_silhouette_values[prediction == i]
+		ith_cluster_silhouette_values.sort()
+
+		size_cluster_i = ith_cluster_silhouette_values.shape[0]
+		y_upper = y_lower + size_cluster_i
+
+		ax.fill_betweenx(np.arange(y_lower, y_upper),
+		                 0,
+		                 ith_cluster_silhouette_values,
+		                 alpha=0.7)
+
+		# Label the silhouette plots with their cluster numbers at the middle
+		ax.text(-0.05, y_lower + 0.5 * size_cluster_i, str(i + 1))
+
+		# Compute the new y_lower for next plot
+		y_lower = y_upper + padding
+
+	ax.set_xlabel("The silhouette coefficient values")
+	ax.set_ylabel("Cluster label")
+
+	# The vertical line for average silhouette score of all the values
+	ax.axvline(x=silhouette_avg, c='r', alpha=0.8, lw=0.8, ls='-')
+	ax.annotate('Average',
+	            xytext=(silhouette_avg, y_lower * 1.025),
+	            xy=(0, 0),
+	            ha='center',
+	            alpha=0.8,
+	            c='r')
+
+	ax.set_yticks([])  # Clear the yaxis labels / ticks
+	ax.set_xticks([0, 0.2, 0.4, 0.6, 0.8, 1])
+	ax.set_ylim(0, y_upper + 1)
+	ax.set_xlim(-0.075, 1.0)
+	plt.show()
 
 
 def affinity_propagation(principal_components, principal_df):
@@ -187,5 +239,3 @@ def add_race_labels(data):
 		)
 	# show the plot
 	plt.show()
-
-
