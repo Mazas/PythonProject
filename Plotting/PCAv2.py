@@ -67,7 +67,7 @@ def find_the_number_of_clusters(principal_components, limit):
     wcss = []
     for i in range(1, limit + 1):
         print("Fitting components {0}/{1}".format(i, limit))
-        kmeans_pca = KMeans(n_clusters=i, init='k-means++')
+        kmeans_pca = KMeans(n_clusters=i, init='k-means++', random_state=42)
         kmeans_pca.fit(principal_components)
         wcss.append(sum(np.min(cdist(principal_components, kmeans_pca.cluster_centers_, 'euclidean'),
                                axis=1)) / principal_components.shape[0])
@@ -77,7 +77,7 @@ def find_the_number_of_clusters(principal_components, limit):
     plt.plot(range(1, limit + 1), wcss, marker='o', linestyle='--')
     plt.xlabel("Number of clusters")
     plt.ylabel("WCSS")
-    plt.title("K-Means PCA2")
+    plt.title("K-Means PCA")
 
     order = np.linspace(1, limit, limit)
     # find the elbow
@@ -127,39 +127,39 @@ def main():
 
     # extract races from the data frame into separate dictionary
     # then scale/ normalize remaining data
-    original_groups = raw_data.copy()
-    races = raw_data.loc[:, ['Race']].values
-    full_df = raw_data.drop("Race", axis=1)
-    full_df = StandardScaler().fit_transform(full_df)
-
-    number_of_components = 27
-    pca = PCA(n_components=number_of_components)
-    principal_components = pca.fit_transform(full_df)
-    principal_Df = pd.DataFrame(data=principal_components)
-    principal_Df['y'] = races
-
-    # original_groups = grouped_by_race.copy()
+    # original_groups = raw_data.copy()
+    # races = raw_data.loc[:, ['Race']].values
+    # full_df = raw_data.drop("Race", axis=1)
+    # full_df = StandardScaler().fit_transform(full_df)
     #
-    # grouped_by_race = grouped_by_race.drop("Race", axis=1)
-    # grouped_by_race = StandardScaler().fit_transform(grouped_by_race)
+    # number_of_components = 27
+    # pca = PCA(n_components=number_of_components)
+    # principal_components = pca.fit_transform(full_df)
+    # principal_Df = pd.DataFrame(data=principal_components)
+    # principal_Df['y'] = races
+
+    original_groups = grouped_by_race.copy()
+
+    grouped_by_race = grouped_by_race.drop("Race", axis=1)
+    grouped_by_race = StandardScaler().fit_transform(grouped_by_race)
 
     # fit principal components
     # store them into separate data frame
     # add labels for race to the data frame
-    # number_of_components = 15
-    # pca = PCA(n_components=number_of_components)
-    # principal_components = pca.fit_transform(grouped_by_race)
-    # principal_Df = pd.DataFrame(data=principal_components)
-    # principal_Df['y'] = distinct_races
+    number_of_components = 15
+    pca = PCA(n_components=number_of_components)
+    principal_components = pca.fit_transform(grouped_by_race)
+    principal_Df = pd.DataFrame(data=principal_components)
+    principal_Df['y'] = distinct_races
 
     # to plot dendrogram, data set must be small
     # otherwise it runs out of memory
     # this makes dendrogram quite inconsistent and frankly useless
     # can be somewhat fixed by using pca grouped pca
-    # plot_dendrogram(distinct_races, x=grouped_by_race)
+    plot_dendrogram(distinct_races, x=grouped_by_race)
 
     # find number of components
-    find_number_of_components(pca)
+    # find_number_of_components(pca)
 
     # find number of clusters
     number_of_clusters = find_the_number_of_clusters(principal_components, 10)
@@ -197,7 +197,7 @@ def main():
     # print(original_groups)
 
     # save to a file
-    original_groups.to_csv("Grouped_by_race_with_cluster_labels.csv")
+    original_groups.to_csv("raw_with_cluster_labels.csv")
 
 
 if __name__ == '__main__':

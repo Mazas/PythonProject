@@ -11,7 +11,7 @@ from sklearn.mixture import GaussianMixture
 
 def cluster_with_kmeans(number_of_clusters, principal_components, principal_df):
 	# do some clustering
-	kmeans_pca = KMeans(n_clusters=number_of_clusters, init='k-means++', random_state=80)
+	kmeans_pca = KMeans(n_clusters=number_of_clusters, init='k-means++', random_state=42)
 	prediction = kmeans_pca.fit_predict(principal_components)
 
 	final_df = pd.concat([principal_df], axis=1)
@@ -20,14 +20,14 @@ def cluster_with_kmeans(number_of_clusters, principal_components, principal_df):
 
 	# plot the thing
 	sns.set()
-	plt.figure(figsize=(20, 20))
+	plt.figure(figsize=(12, 7))
 	plt.title("K-Means PCA")
 	sns.scatterplot(
 		x="PC1", y="PC2",
 		hue="Segment",
 		data=final_df,
-		style=final_df["Segment"],
 		legend=False,
+		s=75,
 		alpha=0.7
 	)
 
@@ -101,10 +101,11 @@ def affinity_propagation(principal_components, principal_df):
 		# get row indexes for samples with this cluster
 		row_ix = where(y_hat == cluster)
 		# create scatter of these samples
-		plt.scatter(principal_components[row_ix, 0], principal_components[row_ix, 1])
+		plt.scatter(principal_components[row_ix, 0], principal_components[row_ix, 1], s=75)
 	final_df.rename({0: 'PC1', 1: 'PC2', 2: 'PC3', 'y': 'Race'}, axis=1, inplace=True)
 	plt.title("Affinity Propagation")
 	add_race_labels(final_df)
+	calc_silhouette(data=principal_components, prediction=y_hat, n_clusters=len(clusters))
 	return final_df
 
 
@@ -123,10 +124,11 @@ def birch_clustering(principal_components, principal_df, number_of_clusters):
 		# get row indexes for samples with this cluster
 		row_ix = where(yhat == cluster)
 		# create scatter of these samples
-		plt.scatter(principal_components[row_ix, 0], principal_components[row_ix, 1])
+		plt.scatter(principal_components[row_ix, 0], principal_components[row_ix, 1], s=75)
 	final_df.rename({0: 'PC1', 1: 'PC2', 2: 'PC3', 'y': 'Race'}, axis=1, inplace=True)
 	plt.title("BIRCH Clustering")
 	add_race_labels(final_df)
+	calc_silhouette(data=principal_components, prediction=yhat, n_clusters=len(clusters))
 	return final_df
 
 
@@ -143,10 +145,12 @@ def dbscan_clustering(principal_components, principal_df):
 		# get row indexes for samples with this cluster
 		row_ix = where(yhat == cluster)
 		# create scatter of these samples
-		plt.scatter(principal_components[row_ix, 0], principal_components[row_ix, 1])
+		plt.scatter(principal_components[row_ix, 0], principal_components[row_ix, 1], s=75)
 	final_df.rename({0: 'PC1', 1: 'PC2', 2: 'PC3', 'y': 'Race'}, axis=1, inplace=True)
 	plt.title("DBSCAN Clustering")
 	add_race_labels(final_df)
+	print(final_df)
+	calc_silhouette(data=principal_components, prediction=yhat, n_clusters=len(clusters))
 	return final_df
 
 
@@ -163,11 +167,12 @@ def mean_shift_clustering(principal_components, principal_df):
 		# get row indexes for samples with this cluster
 		row_ix = where(yhat == cluster)
 		# create scatter of these samples
-		plt.scatter(principal_components[row_ix, 0], principal_components[row_ix, 1])
+		plt.scatter(principal_components[row_ix, 0], principal_components[row_ix, 1], s=75)
 	final_df.rename({0: 'PC1', 1: 'PC2', 2: 'PC3', 'y': 'Race'}, axis=1, inplace=True)
 	print(final_df)
 	plt.title("Mean Shift Clustering")
 	add_race_labels(final_df)
+	calc_silhouette(data=principal_components, prediction=yhat, n_clusters=len(clusters))
 	return final_df
 
 
@@ -184,11 +189,12 @@ def optics_clustering(principal_components, principal_df):
 		# get row indexes for samples with this cluster
 		row_ix = where(yhat == cluster)
 		# create scatter of these samples
-		plt.scatter(principal_components[row_ix, 0], principal_components[row_ix, 1])
+		plt.scatter(principal_components[row_ix, 0], principal_components[row_ix, 1], s=75)
 	final_df.rename({0: 'PC1', 1: 'PC2', 2: 'PC3', 'y': 'Race'}, axis=1, inplace=True)
 	print(final_df)
 	plt.title("OPTICS Clustering")
 	add_race_labels(final_df)
+	calc_silhouette(data=principal_components, prediction=yhat, n_clusters=len(clusters))
 	return final_df
 
 
@@ -205,11 +211,12 @@ def spectral_clustering(principal_components, principal_df):
 		# get row indexes for samples with this cluster
 		row_ix = where(yhat == cluster)
 		# create scatter of these samples
-		plt.scatter(principal_components[row_ix, 0], principal_components[row_ix, 1])
+		plt.scatter(principal_components[row_ix, 0], principal_components[row_ix, 1], s=75)
 	final_df.rename({0: 'PC1', 1: 'PC2', 2: 'PC3', 'y': 'Race'}, axis=1, inplace=True)
 	print(final_df)
 	plt.title("Spectral clustering")
 	add_race_labels(final_df)
+	calc_silhouette(data=principal_components, prediction=yhat, n_clusters=len(clusters))
 	return final_df
 
 
@@ -226,16 +233,17 @@ def gaussian_clustering(principal_components, principal_df):
 		# get row indexes for samples with this cluster
 		row_ix = where(yhat == cluster)
 		# create scatter of these samples
-		plt.scatter(principal_components[row_ix, 0], principal_components[row_ix, 1])
+		plt.scatter(principal_components[row_ix, 0], principal_components[row_ix, 1], s=75)
 	final_df.rename({0: 'PC1', 1: 'PC2', 2: 'PC3', 'y': 'Race'}, axis=1, inplace=True)
 	print(final_df)
 	plt.title("Gaussian Clustering")
 	add_race_labels(final_df)
+	calc_silhouette(data=principal_components, prediction=yhat, n_clusters=len(clusters))
 	return final_df
 
 
 def add_race_labels(data):
-	if len(data)> 100:
+	if len(data) > 100:
 		plt.show()
 	else:
 		# add labels next to the data point
