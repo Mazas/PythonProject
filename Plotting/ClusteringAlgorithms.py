@@ -39,6 +39,8 @@ def cluster_with_kmeans(number_of_clusters, principal_components, principal_df):
 
 
 def calc_silhouette(data, prediction, n_clusters):
+	if len(data) > 100:
+		return
 	ax = plt.gca()
 	# Compute the silhouette scores for each sample
 	silhouette_avg = silhouette_score(data, prediction)

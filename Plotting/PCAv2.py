@@ -122,41 +122,41 @@ def main():
 
     # data frame that is grouped by race
     # used for dendrogram
-    grouped_by_race = raw_data.groupby(["Race"]).median().reset_index()
-    distinct_races = grouped_by_race.loc[:, ['Race']].values
+    # grouped_by_race = raw_data.groupby(["Race"]).median().reset_index()
+    # distinct_races = grouped_by_race.loc[:, ['Race']].values
 
     # extract races from the data frame into separate dictionary
     # then scale/ normalize remaining data
-    # original_groups = raw_data.copy()
-    # races = raw_data.loc[:, ['Race']].values
-    # full_df = raw_data.drop("Race", axis=1)
-    # full_df = StandardScaler().fit_transform(full_df)
-    #
-    # number_of_components = 27
-    # pca = PCA(n_components=number_of_components)
-    # principal_components = pca.fit_transform(full_df)
-    # principal_Df = pd.DataFrame(data=principal_components)
-    # principal_Df['y'] = races
+    original_groups = raw_data.copy()
+    races = raw_data.loc[:, ['Race']].values
+    full_df = raw_data.drop("Race", axis=1)
+    full_df = StandardScaler().fit_transform(full_df)
 
-    original_groups = grouped_by_race.copy()
-
-    grouped_by_race = grouped_by_race.drop("Race", axis=1)
-    grouped_by_race = StandardScaler().fit_transform(grouped_by_race)
-
-    # fit principal components
-    # store them into separate data frame
-    # add labels for race to the data frame
-    number_of_components = 15
+    number_of_components = 27
     pca = PCA(n_components=number_of_components)
-    principal_components = pca.fit_transform(grouped_by_race)
+    principal_components = pca.fit_transform(full_df)
     principal_Df = pd.DataFrame(data=principal_components)
-    principal_Df['y'] = distinct_races
+    principal_Df['y'] = races
+
+    # original_groups = grouped_by_race.copy()
+    #
+    # grouped_by_race = grouped_by_race.drop("Race", axis=1)
+    # grouped_by_race = StandardScaler().fit_transform(grouped_by_race)
+    #
+    # # fit principal components
+    # # store them into separate data frame
+    # # add labels for race to the data frame
+    # number_of_components = 15
+    # pca = PCA(n_components=number_of_components)
+    # principal_components = pca.fit_transform(grouped_by_race)
+    # principal_Df = pd.DataFrame(data=principal_components)
+    # principal_Df['y'] = distinct_races
 
     # to plot dendrogram, data set must be small
     # otherwise it runs out of memory
     # this makes dendrogram quite inconsistent and frankly useless
     # can be somewhat fixed by using pca grouped pca
-    plot_dendrogram(distinct_races, x=grouped_by_race)
+    #plot_dendrogram(distinct_races, x=grouped_by_race)
 
     # find number of components
     # find_number_of_components(pca)
@@ -169,26 +169,26 @@ def main():
     final_df = clustering.cluster_with_kmeans(number_of_clusters, principal_components, principal_Df)
 
     # cluster with affinity propagation
-    clustering.affinity_propagation(principal_components, principal_Df)
+    #clustering.affinity_propagation(principal_components, principal_Df)
 
     # Balanced Iterative Reducing and Clustering using Hierarchies
     # BIRCH clustering
-    clustering.birch_clustering(principal_components, principal_Df, number_of_clusters)
+    #clustering.birch_clustering(principal_components, principal_Df, number_of_clusters)
 
     # DBSCAN clustering
-    clustering.dbscan_clustering(principal_components, principal_Df)
+    #clustering.dbscan_clustering(principal_components, principal_Df)
 
     # Mean Shift clustering
-    clustering.mean_shift_clustering(principal_components, principal_Df)
+    #clustering.mean_shift_clustering(principal_components, principal_Df)
 
     # OPTICS clustering, modified DBSCAN
-    clustering.optics_clustering(principal_components, principal_Df)
+    #clustering.optics_clustering(principal_components, principal_Df)
 
     # spectral clustering
-    clustering.spectral_clustering(principal_components, principal_Df)
+    #clustering.spectral_clustering(principal_components, principal_Df)
 
     # gaussian clustering
-    clustering.gaussian_clustering(principal_components, principal_Df)
+    #clustering.gaussian_clustering(principal_components, principal_Df)
 
     # plot the final df in 3D scatter graph
     # plot_3d_scatter(final_df)
