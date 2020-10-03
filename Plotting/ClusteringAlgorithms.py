@@ -57,10 +57,7 @@ def calc_silhouette(data, prediction, n_clusters):
 		size_cluster_i = ith_cluster_silhouette_values.shape[0]
 		y_upper = y_lower + size_cluster_i
 
-		ax.fill_betweenx(np.arange(y_lower, y_upper),
-		                 0,
-		                 ith_cluster_silhouette_values,
-		                 alpha=0.7)
+		ax.fill_betweenx(np.arange(y_lower, y_upper), 0, ith_cluster_silhouette_values, alpha=0.7)
 
 		# Label the silhouette plots with their cluster numbers at the middle
 		ax.text(-0.05, y_lower + 0.5 * size_cluster_i, str(i + 1))
@@ -73,12 +70,7 @@ def calc_silhouette(data, prediction, n_clusters):
 
 	# The vertical line for average silhouette score of all the values
 	ax.axvline(x=silhouette_avg, c='r', alpha=0.8, lw=0.8, ls='-')
-	ax.annotate('Average',
-	            xytext=(silhouette_avg, y_lower * 1.025),
-	            xy=(0, 0),
-	            ha='center',
-	            alpha=0.8,
-	            c='r')
+	ax.annotate('Average', xytext=(silhouette_avg, y_lower * 1.025), xy=(0, 0), ha='center', alpha=0.8, c='r')
 
 	ax.set_yticks([])  # Clear the yaxis labels / ticks
 	ax.set_xticks([0, 0.2, 0.4, 0.6, 0.8, 1])
