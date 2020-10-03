@@ -4,6 +4,7 @@ from sklearn.svm import SVC
 from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics import classification_report, confusion_matrix
 from sklearn.naive_bayes import GaussianNB
+from sklearn.linear_model import LogisticRegression
 
 
 data = pd.read_csv("raw_with_cluster_labels.csv")
@@ -15,7 +16,7 @@ data = data.drop("Race", axis=1)
 y = data['GameWon']
 X = data.drop(['GameWon', 'Touchdowns', 'TouchdownsAgainst', 'Score', 'ScoreAgainst'], axis=1)
 print("Entries in the dataset: ", len(data))
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.6)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.60)
 
 
 def support_vector_classification():
@@ -59,9 +60,40 @@ def naive_bayes_classification():
 	print(classification_report(y_test, y_predict))
 
 
+def logistic_regression_classification():
+	# dataset with cluster labels:
+	# False - 87%
+	# True - 83%
+	#
+	# [[62490  8002]
+	#  [9750 40232]]
+	#
+	# dataset without cluster labels: FAILED TO CONVERGE
+	# False - 90%
+	# True - 89%
+	#
+	# [[65212  5482]
+	#  [7152 42628]]
+
+	print("Logistic Regression Classifier")
+	print("Training set size: ", len(X_train))
+	classifier = LogisticRegression(max_iter=1000)
+	print("Fitting training set...")
+	classifier.fit(X_train, y_train)
+
+	print("Predicting...")
+	y_predict = classifier.predict(X_test)
+
+	print(confusion_matrix(y_test, y_predict))
+	print(classification_report(y_test, y_predict))
+
+
 def main():
+	# if yore going to run svc, please for the love of god,
+	# change the training set size to <20% just so it would finish it this decade
 	# support_vector_classification()
 	naive_bayes_classification()
+	# logistic_regression_classification()
 
 
 if __name__ == '__main__':
