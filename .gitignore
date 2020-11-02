@@ -3,4 +3,3 @@
 .idea
 /Plotting/__pycache__
 /Plotting/raw_cluster_labels.csv
-/Plotting/raw_with_cluster_labels.csv

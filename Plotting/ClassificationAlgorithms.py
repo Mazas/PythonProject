@@ -1,10 +1,17 @@
 import pandas as pd
+from sklearn.feature_selection import SelectKBest
 from sklearn.model_selection import train_test_split
 from sklearn.svm import SVC
 from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics import classification_report, confusion_matrix
 from sklearn.naive_bayes import GaussianNB
 from sklearn.linear_model import LogisticRegression
+from sklearn.feature_selection import chi2
+import seaborn as sns
+import matplotlib.pyplot as plt
+import numpy as np
+from sklearn import preprocessing
+from sklearn.inspection import permutation_importance
 
 
 data = pd.read_csv("raw_with_cluster_labels.csv")
@@ -12,11 +19,15 @@ lb_make = LabelEncoder()
 data["Race_code"] = lb_make.fit_transform(data["Race"])
 races = data.loc[:, ['Race']].values
 data = data.drop("Race", axis=1)
-
 y = data['GameWon']
-X = data.drop(['GameWon', 'Touchdowns', 'TouchdownsAgainst', 'Score', 'ScoreAgainst'], axis=1)
+
+# 'Unnamed: 0' is the order number in the file, can be safely ignored
+X_raw = data.drop(['Unnamed: 0', 'GameWon', 'Touchdowns', 'TouchdownsAgainst', 'Score', 'ScoreAgainst'], axis=1)
+X = preprocessing.scale(X_raw)
+
 print("Entries in the dataset: ", len(data))
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.60)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.99)
+
 
 
 def support_vector_classification():
@@ -28,9 +39,26 @@ def support_vector_classification():
 
 	print("Predicting...")
 	y_predict = classifier.predict(X_test)
-
 	print(confusion_matrix(y_test, y_predict))
 	print(classification_report(y_test, y_predict))
+
+	feature_importance = abs(classifier.coef_[0])
+	feature_importance = 100.0 * (feature_importance / feature_importance.max())
+	sorted_idx = np.argsort(feature_importance)
+	pos = np.arange(sorted_idx.shape[0]) + .5
+	featfig = plt.figure()
+	featax = featfig.add_subplot(1, 1, 1)
+	featax.barh(pos, feature_importance[sorted_idx], align='center')
+	featax.set_yticks(pos)
+	featax.set_yticklabels(np.array(X_raw.columns)[sorted_idx], fontsize=8)
+	print(np.array(X_raw.columns)[sorted_idx])
+	print(feature_importance[sorted_idx])
+	results = pd.DataFrame({'Importance': feature_importance[sorted_idx], "Feature": np.array(X_raw.columns)[sorted_idx]})
+	print(results.sort_values("Importance"))
+
+	featax.set_xlabel('Relative Feature Importance')
+	plt.tight_layout()
+	plt.show()
 
 
 def naive_bayes_classification():
@@ -58,6 +86,10 @@ def naive_bayes_classification():
 
 	print(confusion_matrix(y_test, y_predict))
 	print(classification_report(y_test, y_predict))
+
+	imps = permutation_importance(nb, X_test, y_test)
+	results = pd.DataFrame({'Permutation importance': imps.importances_mean, "Feature": X_raw.columns.values})
+	print(results.sort_values("Permutation importance"))
 
 
 def logistic_regression_classification():
@@ -87,13 +119,65 @@ def logistic_regression_classification():
 	print(confusion_matrix(y_test, y_predict))
 	print(classification_report(y_test, y_predict))
 
+	feature_importance = abs(classifier.coef_[0])
+	feature_importance = 100.0 * (feature_importance / feature_importance.max())
+	sorted_idx = np.argsort(feature_importance)
+	pos = np.arange(sorted_idx.shape[0]) + .5
+	featfig = plt.figure()
+	featax = featfig.add_subplot(1, 1, 1)
+	featax.barh(pos, feature_importance[sorted_idx], align='center')
+	featax.set_yticks(pos)
+	featax.set_yticklabels(np.array(X_raw.columns)[sorted_idx], fontsize=8)
+	print(np.array(X_raw.columns)[sorted_idx])
+	print(feature_importance[sorted_idx])
+	print(feature_importance)
+	featax.set_xlabel('Relative Feature Importance')
+	plt.tight_layout()
+	plt.show()
+
+
+def bestFeatures():
+
+	# selectKBest
+	# segment is 16th feature by importance
+	# apply SelectKBest class to extract top 10 best features
+	bestfeatures = SelectKBest(score_func=chi2, k=10)
+	fit = bestfeatures.fit(X, y)
+	dfscores = pd.DataFrame(fit.scores_)
+	dfcolumns = pd.DataFrame(X.columns)
+	# concat two dataframes for better visualization
+	featureScores = pd.concat([dfcolumns, dfscores], axis=1)
+	featureScores.columns = ['Specs', 'Score']
+	print(featureScores.nlargest(16, 'Score'))
+
+	# tree based classifier selection
+	from sklearn.ensemble import ExtraTreesClassifier
+	model = ExtraTreesClassifier()
+	model.fit(X, y)
+	print(model.feature_importances_)  # use inbuilt class feature_importances of tree based classifiers
+	# plot graph of feature importances for better visualization
+	feat_importances = pd.Series(model.feature_importances_, index=X.columns)
+	feat_importances.nlargest(16).plot(kind='barh')
+	plt.show()
+
+	# heatmap for correlations
+	# get correlations of each features in dataset
+	corrmat = data.corr()
+	top_corr_features = corrmat.index
+	plt.figure(figsize=(25, 25))
+	# plot heat map
+	print(data[top_corr_features].corr()[["Segment", "GameWon"]])
+	g = sns.heatmap(data[top_corr_features].corr(), fmt=".2f", annot=True, cmap="RdYlGn")
+	plt.show()
+
 
 def main():
 	# if yore going to run svc, please for the love of god,
 	# change the training set size to <20% just so it would finish it this decade
-	# support_vector_classification()
-	naive_bayes_classification()
+	support_vector_classification()
+	# naive_bayes_classification()
 	# logistic_regression_classification()
+	# bestFeatures()
 
 
 if __name__ == '__main__':
