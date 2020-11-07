@@ -122,35 +122,35 @@ def main():
 
 	# data frame that is grouped by race
 	# used for dendrogram
-	# grouped_by_race = raw_data.groupby(["Race"]).median().reset_index()
-	# distinct_races = grouped_by_race.loc[:, ['Race']].values
+	grouped_by_race = raw_data.groupby(["Race"]).median().reset_index()
+	distinct_races = grouped_by_race.loc[:, ['Race']].values
 
 	# extract races from the data frame into separate dictionary
 	# then scale/ normalize remaining data
-	original_groups = raw_data.copy()
-	races = raw_data.loc[:, ['Race']].values
-	full_df = raw_data.drop("Race", axis=1)
-	full_df = StandardScaler().fit_transform(full_df)
+	# original_groups = raw_data.copy()
+	# races = raw_data.loc[:, ['Race']].values
+	# full_df = raw_data.drop("Race", axis=1)
+	# full_df = StandardScaler().fit_transform(full_df)
 
-	number_of_components = 27
-	pca = PCA(n_components=number_of_components)
-	principal_components = pca.fit_transform(full_df)
-	principal_Df = pd.DataFrame(data=principal_components)
-	principal_Df['y'] = races
+	# number_of_components = 27
+	# pca = PCA(n_components=number_of_components)
+	# principal_components = pca.fit_transform(full_df)
+	# principal_Df = pd.DataFrame(data=principal_components)
+	# principal_Df['y'] = races
 
-	# original_groups = grouped_by_race.copy()
-	#
-	# grouped_by_race = grouped_by_race.drop("Race", axis=1)
-	# grouped_by_race = StandardScaler().fit_transform(grouped_by_race)
+	original_groups = grouped_by_race.copy()
+
+	grouped_by_race = grouped_by_race.drop("Race", axis=1)
+	grouped_by_race = StandardScaler().fit_transform(grouped_by_race)
 	#
 	# # fit principal components
 	# # store them into separate data frame
 	# # add labels for race to the data frame
-	# number_of_components = 15
-	# pca = PCA(n_components=number_of_components)
-	# principal_components = pca.fit_transform(grouped_by_race)
-	# principal_Df = pd.DataFrame(data=principal_components)
-	# principal_Df['y'] = distinct_races
+	number_of_components = 15
+	pca = PCA(n_components=number_of_components)
+	principal_components = pca.fit_transform(grouped_by_race)
+	principal_Df = pd.DataFrame(data=principal_components)
+	principal_Df['y'] = distinct_races
 
 	# to plot dendrogram, data set must be small
 	# otherwise it runs out of memory
@@ -169,26 +169,26 @@ def main():
 	final_df = Clustering.cluster_with_kmeans(number_of_clusters, principal_components, principal_Df)
 
 	# cluster with affinity propagation
-	# clustering.affinity_propagation(principal_components, principal_Df)
+	Clustering.affinity_propagation(principal_components, principal_Df)
 
 	# Balanced Iterative Reducing and Clustering using Hierarchies
 	# BIRCH clustering
-	# clustering.birch_clustering(principal_components, principal_Df, number_of_clusters)
+	Clustering.birch_clustering(principal_components, principal_Df, number_of_clusters)
 
 	# DBSCAN clustering
-	# clustering.dbscan_clustering(principal_components, principal_Df)
+	Clustering.dbscan_clustering(principal_components, principal_Df)
 
 	# Mean Shift clustering
-	# clustering.mean_shift_clustering(principal_components, principal_Df)
+	Clustering.mean_shift_clustering(principal_components, principal_Df)
 
 	# OPTICS clustering, modified DBSCAN
-	# clustering.optics_clustering(principal_components, principal_Df)
+	Clustering.optics_clustering(principal_components, principal_Df)
 
 	# spectral clustering
-	# clustering.spectral_clustering(principal_components, principal_Df)
+	Clustering.spectral_clustering(principal_components, principal_Df)
 
 	# gaussian clustering
-	# clustering.gaussian_clustering(principal_components, principal_Df)
+	Clustering.gaussian_clustering(principal_components, principal_Df)
 
 	# plot the final df in 3D scatter graph
 	# plot_3d_scatter(final_df)
@@ -197,7 +197,7 @@ def main():
 	# print(original_groups)
 
 	# save to a file
-	original_groups.to_csv("raw_with_cluster_labels.csv")
+	#original_groups.to_csv("raw_with_cluster_labels.csv")
 
 
 if __name__ == '__main__':
