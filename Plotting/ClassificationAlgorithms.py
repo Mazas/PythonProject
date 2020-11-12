@@ -26,15 +26,16 @@ data[data.columns] = preprocessing.MinMaxScaler().fit_transform(data.values)
 
 # experience (0.58), breaks, blocks (0.69 for both), meters run (0.63), touchdowns, stuns (0.56) and knockouts (0.52)
 
+#  , 'XP', 'Breaks', 'Blocks', 'MetersRun', 'Stuns', 'Knockouts']
 index = 1
-features_to_drop = ['Segment', 'XP', 'Breaks', 'Blocks', 'MetersRun', 'Stuns', 'Knockouts']
-data = data.drop(features_to_drop[index:1], axis=1)
-print(features_to_drop[index:1] + " column dropped.")
+features_to_drop = ['Breaks', 'Blocks', 'MetersRun', 'Stuns', 'Knockouts']
+data = data.drop(features_to_drop, axis=1)
+print(features_to_drop)
 
 # 'Unnamed: 0' is the order number in the file, can be safely ignored
 X_raw = data.drop(['Unnamed: 0', 'GameWon', 'Touchdowns', 'TouchdownsAgainst', 'Score', 'ScoreAgainst'], axis=1)
 
-print("Entries in the dataset: ", len(data))
+# print("Entries in the dataset: ", len(data))
 X_train, X_test, y_train, y_test = train_test_split(X_raw, y, test_size=0.6)
 
 
@@ -81,7 +82,7 @@ def cross_validation(classifier):
 	#
 	scores = cross_val_score(pipeline, X=X_train, y=y_train, cv=10, n_jobs=1)
 
-	print('Cross Validation accuracy scores: %s' % scores)
+	# print('Cross Validation accuracy scores: %s' % scores)
 
 	print('Cross Validation accuracy: %.3f +/- %.3f' % (np.mean(scores), np.std(scores)))
 
@@ -102,11 +103,11 @@ def naive_bayes_classification():
 	#  [13736 36105]]
 
 	print("Naive Bayes Classifier")
-	print("Training set size: ", len(X_train))
+	# print("Training set size: ", len(X_train))
 	nb = GaussianNB()
-	print("Fitting training set...")
+	# print("Fitting training set...")
 	nb.fit(X_train, y_train)
-	print("Predicting...")
+	# print("Predicting...")
 	y_predict = nb.predict(X_test)
 
 	cross_validation(nb)
@@ -140,12 +141,12 @@ def logistic_regression_classification():
 	#  [7152 42628]]
 
 	print("Logistic Regression Classifier")
-	print("Training set size: ", len(X_train))
+	# print("Training set size: ", len(X_train))
 	classifier = LogisticRegression(max_iter=1000)
-	print("Fitting training set...")
+	# print("Fitting training set...")
 	classifier.fit(X_train, y_train)
 
-	print("Predicting...")
+	# print("Predicting...")
 	y_predict = classifier.predict(X_test)
 
 	cross_validation(classifier)
@@ -208,9 +209,9 @@ def bestFeatures():
 def main():
 	# if yore going to run svc, please for the love of god,
 	# change the training set size to <20% just so it would finish it this decade
-	support_vector_classification()
-	#naive_bayes_classification()
-	#logistic_regression_classification()
+	#support_vector_classification()
+	naive_bayes_classification()
+	logistic_regression_classification()
 	# bestFeatures()
 
 
