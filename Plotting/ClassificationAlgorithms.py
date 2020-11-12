@@ -24,16 +24,18 @@ y = data['GameWon']
 
 data[data.columns] = preprocessing.MinMaxScaler().fit_transform(data.values)
 
-# drop segment for testing
-print("Segment column dropped")
-data = data.drop('Segment', axis=1)
+# experience (0.58), breaks, blocks (0.69 for both), meters run (0.63), touchdowns, stuns (0.56) and knockouts (0.52)
+
+index = 1
+features_to_drop = ['Segment', 'XP', 'Breaks', 'Blocks', 'MetersRun', 'Stuns', 'Knockouts']
+data = data.drop(features_to_drop[index], axis=1)
+print(features_to_drop[index] + " column dropped.")
 
 # 'Unnamed: 0' is the order number in the file, can be safely ignored
 X_raw = data.drop(['Unnamed: 0', 'GameWon', 'Touchdowns', 'TouchdownsAgainst', 'Score', 'ScoreAgainst'], axis=1)
 
 print("Entries in the dataset: ", len(data))
 X_train, X_test, y_train, y_test = train_test_split(X_raw, y, test_size=0.6)
-
 
 
 def support_vector_classification():
@@ -45,28 +47,30 @@ def support_vector_classification():
 
 	print("Predicting...")
 	y_predict = classifier.predict(X_test)
-	print(confusion_matrix(y_test, y_predict))
-	print(classification_report(y_test, y_predict))
 
 	cross_validation(classifier)
 
-	feature_importance = abs(classifier.coef_[0])
-	feature_importance = 100.0 * (feature_importance / feature_importance.max())
-	sorted_idx = np.argsort(feature_importance)
-	pos = np.arange(sorted_idx.shape[0]) + .5
-	featfig = plt.figure()
-	featax = featfig.add_subplot(1, 1, 1)
-	featax.barh(pos, feature_importance[sorted_idx], align='center')
-	featax.set_yticks(pos)
-	featax.set_yticklabels(np.array(X_raw.columns)[sorted_idx], fontsize=8)
-	# print(np.array(X_raw.columns)[sorted_idx])
-	# print(feature_importance[sorted_idx])
-	results = pd.DataFrame({'Importance': feature_importance[sorted_idx], "Feature": np.array(X_raw.columns)[sorted_idx]})
-	print(results.sort_values("Importance"))
-
-	featax.set_xlabel('Relative Feature Importance')
-	plt.tight_layout()
-	plt.show()
+	# # confusion matrix and results
+	#
+	# print(confusion_matrix(y_test, y_predict))
+	# print(classification_report(y_test, y_predict))
+	#
+	# # feature importance calculation
+	# feature_importance = abs(classifier.coef_[0])
+	# feature_importance = 100.0 * (feature_importance / feature_importance.max())
+	# sorted_idx = np.argsort(feature_importance)
+	# pos = np.arange(sorted_idx.shape[0]) + .5
+	# featfig = plt.figure()
+	# featax = featfig.add_subplot(1, 1, 1)
+	# featax.barh(pos, feature_importance[sorted_idx], align='center')
+	# featax.set_yticks(pos)
+	# featax.set_yticklabels(np.array(X_raw.columns)[sorted_idx], fontsize=8)
+	# results = pd.DataFrame({'Importance': feature_importance[sorted_idx], "Feature": np.array(X_raw.columns)[sorted_idx]})
+	# print(results.sort_values("Importance"))
+	#
+	# featax.set_xlabel('Relative Feature Importance')
+	# plt.tight_layout()
+	# plt.show()
 
 
 def cross_validation(classifier):
@@ -105,16 +109,19 @@ def naive_bayes_classification():
 	print("Predicting...")
 	y_predict = nb.predict(X_test)
 
-	print(confusion_matrix(y_test, y_predict))
-	print(classification_report(y_test, y_predict))
-
 	cross_validation(nb)
 
-	imps = permutation_importance(nb, X_test, y_test)
-	feature_importance = abs(imps.importances_mean)
-	feature_importance = 100.0 * (feature_importance / feature_importance.max())
-	results = pd.DataFrame({'Permutation importance': feature_importance, "Feature": X_raw.columns.values})
-	print(results.sort_values("Permutation importance"))
+	# # confusion matrix and results
+	# print(confusion_matrix(y_test, y_predict))
+	# print(classification_report(y_test, y_predict))
+	#
+	# # feature importance calculation
+	#
+	# imps = permutation_importance(nb, X_test, y_test)
+	# feature_importance = abs(imps.importances_mean)
+	# feature_importance = 100.0 * (feature_importance / feature_importance.max())
+	# results = pd.DataFrame({'Permutation importance': feature_importance, "Feature": X_raw.columns.values})
+	# print(results.sort_values("Permutation importance"))
 
 
 def logistic_regression_classification():
@@ -141,27 +148,30 @@ def logistic_regression_classification():
 	print("Predicting...")
 	y_predict = classifier.predict(X_test)
 
-	print(confusion_matrix(y_test, y_predict))
-	print(classification_report(y_test, y_predict))
-
 	cross_validation(classifier)
 
-	feature_importance = abs(classifier.coef_[0])
-	feature_importance = 100.0 * (feature_importance / feature_importance.max())
-	sorted_idx = np.argsort(feature_importance)
-	pos = np.arange(sorted_idx.shape[0]) + .5
-	featfig = plt.figure()
-	featax = featfig.add_subplot(1, 1, 1)
-	featax.barh(pos, feature_importance[sorted_idx], align='center')
-	featax.set_yticks(pos)
-	featax.set_yticklabels(np.array(X_raw.columns)[sorted_idx], fontsize=8)
-	featax.set_xlabel('Relative Feature Importance')
-	plt.tight_layout()
-	plt.show()
+	# # confusion matrix and results
+	#
+	# print(confusion_matrix(y_test, y_predict))
+	# print(classification_report(y_test, y_predict))
+	#
+	# # feature importance calculation
+	#
+	# feature_importance = abs(classifier.coef_[0])
+	# feature_importance = 100.0 * (feature_importance / feature_importance.max())
+	# sorted_idx = np.argsort(feature_importance)
+	# pos = np.arange(sorted_idx.shape[0]) + .5
+	# featfig = plt.figure()
+	# featax = featfig.add_subplot(1, 1, 1)
+	# featax.barh(pos, feature_importance[sorted_idx], align='center')
+	# featax.set_yticks(pos)
+	# featax.set_yticklabels(np.array(X_raw.columns)[sorted_idx], fontsize=8)
+	# featax.set_xlabel('Relative Feature Importance')
+	# plt.tight_layout()
+	# plt.show()
 
 
 def bestFeatures():
-
 	# selectKBest
 	# segment is 16th feature by importance
 	# apply SelectKBest class to extract top 10 best features
@@ -199,8 +209,8 @@ def main():
 	# if yore going to run svc, please for the love of god,
 	# change the training set size to <20% just so it would finish it this decade
 	support_vector_classification()
-	# naive_bayes_classification()
-	# logistic_regression_classification()
+	#naive_bayes_classification()
+	#logistic_regression_classification()
 	# bestFeatures()
 
 
