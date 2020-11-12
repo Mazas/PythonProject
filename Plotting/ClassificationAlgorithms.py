@@ -28,8 +28,8 @@ data[data.columns] = preprocessing.MinMaxScaler().fit_transform(data.values)
 
 index = 1
 features_to_drop = ['Segment', 'XP', 'Breaks', 'Blocks', 'MetersRun', 'Stuns', 'Knockouts']
-data = data.drop(features_to_drop[index], axis=1)
-print(features_to_drop[index] + " column dropped.")
+data = data.drop(features_to_drop[index:1], axis=1)
+print(features_to_drop[index:1] + " column dropped.")
 
 # 'Unnamed: 0' is the order number in the file, can be safely ignored
 X_raw = data.drop(['Unnamed: 0', 'GameWon', 'Touchdowns', 'TouchdownsAgainst', 'Score', 'ScoreAgainst'], axis=1)
